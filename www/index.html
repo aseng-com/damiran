@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkyCast Elite | RASYEL CODER</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #020617;
+            --accent: #38bdf8;
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at top right, #1e293b, #020617);
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* SCREEN OFFLINE (MODAL FULL) */
+        #offline-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color);
+            z-index: 10000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(20px);
+        }
+
+        /* SEARCH INPUT CUSTOM */
+        .search-container { position: relative; width: 100%; max-width: 500px; margin: 0 auto 30px auto; }
+        
+        .input-premium {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 20px !important;
+            color: #ffffff !important;
+            padding: 15px 25px !important;
+            transition: all 0.3s ease;
+        }
+
+        .input-premium:hover, .input-premium:focus {
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: var(--accent) !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+        }
+
+        .input-premium::placeholder { color: rgba(255, 255, 255, 0.5); }
+
+        .btn-search-p {
+            position: absolute; right: 8px; top: 8px; bottom: 8px;
+            border-radius: 15px; background: var(--accent);
+            border: none; font-weight: 800; padding: 0 20px; color: #020617;
+        }
+
+        /* CARD DISPLAY */
+        .main-card {
+            background: var(--glass);
+            backdrop-filter: blur(25px);
+            border: 1px solid var(--border);
+            border-radius: 35px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .loading-shimmer { opacity: 0.4; pointer-events: none; transition: 0.3s; }
+
+        .temp-val {
+            font-size: 5.5rem; font-weight: 800;
+            background: linear-gradient(180deg, #fff, #94a3b8);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        /* FOOTER */
+        footer {
+            margin-top: auto;
+            padding: 25px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.4);
+        }
+
+        .dev-link { color: var(--accent); text-decoration: none; font-weight: 700; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div id="offline-screen">
+    <i class="fas fa-wifi-slash fa-4x mb-3 text-danger"></i>
+    <h2 class="fw-bold">Ops! Aplikasi butuh internet</h2>
+    <p class="opacity-50">Sambungkan jaringan untuk menggunakan SkyCast.</p>
+</div>
+
+<div class="container py-5 flex-grow-1">
+    <div class="row justify-content-center">
+        <div class="col-xl-5 col-lg-6 col-md-8 text-center" data-aos="fade-up">
+            
+            <h2 class="fw-800 mb-4 mt-4">Rasyel - Weather</h2>
+
+            <div class="search-container">
+                <input type="text" id="cityInput" class="form-control input-premium" placeholder="Ketik nama kota...">
+                <button class="btn-search-p" id="btnSearch" onclick="searchCity()">
+                    <span id="btnText">CARI</span>
+                    <span id="btnLoader" class="d-none spinner-border spinner-border-sm"></span>
+                </button>
+            </div>
+
+            <div id="weatherBox" class="main-card">
+                <h3 id="cityName" class="fw-bold mb-1">Jakarta</h3>
+                <p id="currentDate" class="small text-info mb-4 text-uppercase">--</p>
+
+                <div id="weatherIcon" class="mb-3" style="font-size: 5rem; color: var(--accent);">
+                    <i class="fas fa-cloud-sun"></i>
+                </div>
+
+                <div class="temp-val" id="tempDisplay">--°</div>
+                <p class="text-uppercase fw-bold mb-5" id="weatherDesc" style="letter-spacing: 3px;">Ready</p>
+
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="p-3 rounded-4" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border);">
+                            <small class="d-block opacity-40 mb-1">ANGIN</small>
+                            <h6 id="windDisplay" class="mb-0">-- km/h</h6>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded-4" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border);">
+                            <small class="d-block opacity-40 mb-1">LEMBAP</small>
+                            <h6 id="humDisplay" class="mb-0">-- %</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div>Developed by <span class="dev-link" onclick="showAbout()">RASYEL CODER</span></div>
+    <div class="mt-1">© 2024 SkyCast Weather Engine</div>
+</footer>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    AOS.init();
+
+    // ==========================================
+    // SISTEM ALERT INTERNET (FITUR BARU)
+    // ==========================================
+    function checkConnection() {
+        const offlineScreen = document.getElementById('offline-screen');
+        
+        if (!navigator.onLine) {
+            // 1. Munculkan Layar "Ops"
+            offlineScreen.style.display = 'flex';
+            
+            // 2. Munculkan Alert Modern
+            Swal.fire({
+                title: 'Koneksi Terputus!',
+                text: 'Aplikasi membutuhkan internet untuk mengambil data cuaca.',
+                icon: 'error',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 5000,
+                background: '#020617',
+                color: '#fff'
+            });
+        } else {
+            offlineScreen.style.display = 'none';
+        }
+    }
+
+    window.addEventListener('online', checkConnection);
+    window.addEventListener('offline', checkConnection);
+    checkConnection(); // Cek saat pertama kali jalan
+
+
+    // ==========================================
+    // LOGIKA CUACA & LOADING
+    // ==========================================
+    async function fetchWeather(lat, lon, name) {
+        try {
+            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=auto`);
+            const data = await res.json();
+            
+            document.getElementById('cityName').innerText = name;
+            document.getElementById('tempDisplay').innerText = `${Math.round(data.current.temperature_2m)}°`;
+            document.getElementById('windDisplay').innerText = `${data.current.wind_speed_10m} km/h`;
+            document.getElementById('humDisplay').innerText = `${data.current.relative_humidity_2m}%`;
+            document.getElementById('currentDate').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
+            document.getElementById('weatherDesc').innerText = "Data Terupdate";
+        } catch (e) {
+            console.error("Gagal sinkronisasi data.");
+        }
+    }
+
+    async function searchCity() {
+        const query = document.getElementById('cityInput').value;
+        if (!query) return;
+
+        // SISTEM LOADING
+        const btnText = document.getElementById('btnText');
+        const btnLoader = document.getElementById('btnLoader');
+        const weatherBox = document.getElementById('weatherBox');
+
+        btnText.classList.add('d-none');
+        btnLoader.classList.remove('d-none');
+        weatherBox.classList.add('loading-shimmer'); // Efek pudar saat cari
+
+        try {
+            const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${query}&count=1&language=id&format=json`);
+            const data = await res.json();
+
+            if (data.results && data.results.length > 0) {
+                const city = data.results[0];
+                await fetchWeather(city.latitude, city.longitude, city.name);
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Kota Tidak Ditemukan',
+                    text: 'Coba periksa kembali ejaan nama kota Anda.',
+                    background: '#020617', color: '#fff', confirmButtonColor: '#38bdf8'
+                });
+            }
+        } catch (err) {
+            console.error("Kesalahan jaringan.");
+        } finally {
+            // MATIKAN LOADING
+            btnText.classList.remove('d-none');
+            btnLoader.classList.add('d-none');
+            weatherBox.classList.remove('loading-shimmer');
+        }
+    }
+
+    function showAbout() {
+        Swal.fire({
+            title: 'INFO DEVELOPER',
+            html: '<p>SkyCast Elite dirancang khusus untuk kemudahan akses cuaca.<br><br><b>Oleh:</b> RASYEL CODER</p>',
+            background: '#020617', color: '#fff', confirmButtonColor: '#38bdf8'
+        });
+    }
+
+    document.getElementById('cityInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') searchCity(); });
+    fetchWeather(-6.2088, 106.8456, "Jakarta");
+</script>
+</body>
+</html>
